@@ -21,9 +21,11 @@ public class SecurityConfig {
                         // Endpoints públicos o de integración interna (ej. Webhooks con token de Slack)
                         .requestMatchers("/api/v1/slack/**",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**")
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html")
                         .permitAll()
-
+                        // Permitir acceso público temporal al endpoint del chat
+                        .requestMatchers("/api/v1/chat/**").permitAll()
                         // Endpoints que requieren roles específicos
                         .requestMatchers("/api/v1/chat/query")
                         .hasAnyRole("ANALISTA_FUNCIONAL", "SOPORTE", "ADMIN")
