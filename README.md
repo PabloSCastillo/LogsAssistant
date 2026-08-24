@@ -65,3 +65,143 @@
                                                           │
                                                           ▼
                                              [(PostgreSQL: Transacciones)]
+```
+
+## 🛠 Pila Tecnológica
+Backend: Java 17+ / 21, Spring Boot 3.x, Spring Web, Spring Data JPA, Spring Security.
+
+Inteligencia Artificial: Spring AI (Tool / Function Calling, Prompt Templates, ChatMemory).
+
+Modelos LLM: Google Gemini API (gemini-1.5-pro / gemini-1.5-flash) / Modelos Locales vía Ollama (qwen2.5, llama3).
+
+Almacenamiento de Datos:
+
+PostgreSQL 16: Datos transaccionales y registro inmutable de auditoría.
+
+Elasticsearch 8.13.0: Motor distribuido de búsqueda e indexación de logs.
+
+Ingesta y Procesamiento: Logstash 8.13 con filtros Grok estructurados.
+
+Integraciones: Slack API Client Java SDK, OpenAPI / Swagger UI 3, Ngrok / Dev Tunnels.
+
+Contenedores: Docker & Docker Compose.
+
+## 📂 Estructura del Proyecto
+log-assistant/
+├── docker/
+│   ├── docker-compose.yml             # Contenedores de Postgres, Elasticsearch y Logstash
+│   ├── logstash.conf                  # Pipelines y filtros Grok por tipo de log
+│   └── logs/                          # Datasets de logs crudos (Apache, Linux, OpenSSH, etc.)
+│
+└── src/
+    └── main/
+        ├── java/com/dicsys/assistant/
+        │   ├── Application.java       # Punto de entrada de Spring Boot
+        │   │
+        │   ├── config/                # Configuraciones de Seguridad, CORS y Beans
+        │   │   ├── SecurityConfig.java
+        │   │   └── AiConfig.java
+        │   │
+        │   ├── controller/            # Endpoints REST y Webhooks
+        │   │   ├── ChatController.java
+        │   │   └── SlackController.java
+        │   │
+        │   ├── service/               # Orquestación de IA y Auditoría
+        │   │   ├── OrchestratorService.java
+        │   │   └── AuditService.java
+        │   │
+        │   ├── ai/tools/              # Herramientas ejecutables por el LLM (@Tool)
+        │   │   ├── DbTools.java       # Text-to-SQL y consultas transaccionales
+        │   │   └── LogTools.java      # Búsqueda full-text en Elasticsearch
+        │   │
+        │   ├── security/              # Capa de Gobierno y Blindaje
+        │   │   ├── QueryValidator.java# Validación AST (JSqlParser) de solo lectura
+        │   │   └── PiiSanitizer.java  # Enmascaramiento de datos sensibles
+        │   │
+        │   └── repository/            # Acceso a datos
+        │       ├── ReadOnlyQueryRepository.java
+        │       └── AuditRepository.java
+        │
+        └── resources/
+            ├── application.properties # Parámetros de entorno y conexiones
+            └── prompts/               # Plantillas externas StringTemplate (.st)
+                ├── system-prompt.st
+                ├── text-to-sql-prompt.st
+                └── log-simplifier-prompt.st
+
+## 🛡 Seguridad y Gobernanza de Datos
+Garantía Read-Only (Doble Barrera):
+
+A nivel base de datos: Usuario con permisos estrictos de lectura (SELECT).
+
+A nivel aplicación: QueryValidator inspecciona el árbol sintáctico (AST) con JSqlParser rechazando cualquier intento de inyección o comando no SELECT.
+
+Limitación de Volumen y Latencia: Inyección automática de cláusulas LIMIT 50 y paginación en Elasticsearch (size=5) para prevenir sobrecarga y optimizar el consumo de tokens.
+
+Auditoría Total: Registro persistente de usuario, rol, prompt original, acción ejecutada, tiempo de respuesta en ms y estado de finalización.
+## 🐳 Pipelines de Ingesta (ELK & Docker)
+# Levantar el clúster local de Elasticsearch, PostgreSQL y Logstash
+docker compose up -d
+
+Parsing automático de logs con Logstash
+Apache Web Logs: Extracción de IP cliente, método HTTP, URI y http_status.
+
+Syslog / Linux: Detección de fallos en servicios del sistema (systemd, caídas de memoria Out of memory).
+
+OpenSSH: Extracción de eventos de autenticación (Failed password, usuario e IP origen).
+
+## ⚙️ Configuración e Instalación
+1. Variables de Entorno (.env)
+Crea un archivo .env en la raíz del proyecto:
+# Proveedor LLM
+GEMINI_API_KEY=tu_api_key_aqui
+
+# Base de Datos PostgreSQL
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/asistente
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=postgres
+
+# Elasticsearch
+SPRING_ELASTICSEARCH_URIS=http://localhost:9200
+
+# Integración con Slack (Opcional)
+SLACK_BOT_TOKEN=xoxb-tu-slack-bot-token
+SLACK_SIGNING_SECRET=tu-slack-signing-secret
+
+# Compilar el proyecto
+./gradlew clean build
+
+# Iniciar la aplicación
+./gradlew bootRun
+
+## 🧪 Pruebas y Casos de Uso (Swagger & Slack)
+Accede a la documentación interactiva en:
+👉 http://localhost:8081/swagger-ui.html
+
+Payloads de prueba en POST /api/v1/chat
+🔹 Caso 1: Detección de Incidentes Web y Códigos HTTP
+
+{
+  "prompt": "Revisa el índice general-files-logs y dime cuándo ocurrieron los últimos errores 400 o fallos en peticiones POST.",
+  "userId": "analista_soporte",
+  "userRole": "SOPORTE",
+  "conversationId": "sesion-http-01"
+}
+
+🔹 Caso 2: Auditoría de Seguridad SSH
+{
+  "prompt": "Revisa los registros de openssh y dime si hubo intentos de acceso fallidos para el usuario root.",
+  "userId": "admin_seguridad",
+  "userRole": "ADMIN_SEGURIDAD",
+  "conversationId": "sesion-ssh-02"
+}
+
+🔹 Caso 3: Text-to-SQL sobre Transacciones
+{
+  "prompt": "¿Cuáles son las últimas transacciones rechazadas y cuál fue el motivo?",
+  "userId": "analista_funcional",
+  "userRole": "ANALISTA_FUNCIONAL",
+  "conversationId": "sesion-sql-03"
+}
+
+## 📄 Licencia
