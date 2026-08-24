@@ -87,6 +87,7 @@ Integraciones: Slack API Client Java SDK, OpenAPI / Swagger UI 3, Ngrok / Dev Tu
 Contenedores: Docker & Docker Compose.
 
 ## 📂 Estructura del Proyecto
+```text
 log-assistant/
 ├── docker/
 │   ├── docker-compose.yml             # Contenedores de Postgres, Elasticsearch y Logstash
@@ -128,6 +129,7 @@ log-assistant/
                 ├── system-prompt.st
                 ├── text-to-sql-prompt.st
                 └── log-simplifier-prompt.st
+```
 
 ## 🛡 Seguridad y Gobernanza de Datos
 Garantía Read-Only (Doble Barrera):
