@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AuditService {
-    
+
     private final AuditRepository auditRepository;
 
     public AuditService(AuditRepository auditRepository) {
@@ -21,15 +21,19 @@ public class AuditService {
      * y no penalizar el tiempo de respuesta al usuario.
      */
     @Async
-    public void registrarAuditoria(String userId,
-                                   String role,
-                                   String prompt,
-                                   String queryEjecutada,
-                                   String respuesta,
-                                   boolean exitoso,
-                                   String error,
-                                   long tiempoMs) {
-                                   
+    public void registrarAuditoria(
+            String userId,
+            String role,
+            String prompt,
+            String queryEjecutada,
+            String respuesta,
+            boolean exitoso,
+            String error,
+            long tiempoMs,
+            Integer promptTokens,
+            Integer generationTokens,
+            Integer totalTokens) {
+
         AuditLog log = AuditLog.builder()
                 .userId(userId)
                 .userRole(role)
@@ -39,9 +43,12 @@ public class AuditService {
                 .exitoso(exitoso)
                 .motivoError(error)
                 .tiempoEjecucionMs(tiempoMs)
+                .promptTokens(promptTokens)
+                .generationTokens(generationTokens)
+                .totalTokens(totalTokens)
                 .fechaCreacion(LocalDateTime.now())
                 .build();
-                
+
         auditRepository.save(log);
     }
 }

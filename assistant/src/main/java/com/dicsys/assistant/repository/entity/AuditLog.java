@@ -43,6 +43,11 @@ public class AuditLog {
     @Column(nullable = false)
     private Long tiempoEjecucionMs; // Tiempo de respuesta en milisegundos
 
+    // Nuevos campos para consumo de tokens
+    private Integer promptTokens; // Tokens consumidos en el prompt/entrada
+    private Integer generationTokens; // Tokens consumidos en la respuesta/salida
+    private Integer totalTokens; // Total consumido
+
     @Column(nullable = false)
     private LocalDateTime fechaCreacion; // Timestamp de la consulta
 
